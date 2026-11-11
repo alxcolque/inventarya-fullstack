@@ -1,0 +1,22 @@
+export interface ISaleResponse {
+    id: number | string,
+    store_id?: number | string,
+    customer_id: number,
+    name: string,
+    phone: string,
+    customer: {
+        name: string,
+        email: string,
+        phone: string,
+        address: string,
+    },
+    shop: string,
+    total: number,
+    status: string,
+    refund_status?: 'none' | 'partially_refunded' | 'refunded',
+    total_refunded?: number,
+    remaining_refundable?: number,
+    has_electronic_invoice?: boolean,
+    date: string,
+    created_at: string,
+}

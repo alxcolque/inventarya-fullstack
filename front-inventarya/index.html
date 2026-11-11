@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/favicon.ico" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#006fee" />
+  <meta name="application-name" content="Inventarya" />
+  <meta name="description" content="Inventarya es un sistema cloud de inventarios, almacenes, ventas y punto de venta para negocios con una o varias sucursales." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta property="og:locale" content="es_BO" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Inventarya" />
+  <meta property="og:title" content="Inventarya - Sistema de Inventarios y Punto de Venta" />
+  <meta property="og:description" content="Controla inventarios, almacenes, sucursales y ventas en tiempo real desde una plataforma cloud." />
+  <meta property="og:image" content="/branding/logo-inventarya.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Inventarya - Sistema de Inventarios y Punto de Venta" />
+  <meta name="twitter:description" content="Controla inventarios, almacenes, sucursales y ventas en tiempo real desde una plataforma cloud." />
+  <meta name="twitter:image" content="/branding/logo-inventarya.png" />
+  <title>Inventarya - Sistema de Inventarios y Punto de Venta</title>
+  <script>
+    window.global = window.global || window;
+    window.process = window.process || { env: { NODE_ENV: 'development' } };
+  </script>
+  <style>
+    #app-splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0b0f19;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      z-index: 99999;
+    }
+    .app-splash-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      text-align: center;
+      animation: splash-fade 0.5s ease-out;
+    }
+    .app-splash-logo-wrap {
+      width: 108px;
+      height: 108px;
+      padding: 14px;
+      border-radius: 1.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px -15px rgba(0, 111, 238, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .app-splash-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 1.25rem;
+    }
+    .app-splash-title {
+      margin: 0;
+      font-size: 2.25rem;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-indent: 0.22em;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+    @keyframes splash-fade {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <div id="app-splash" aria-label="Cargando Inventarya">
+      <div class="app-splash-container">
+        <div class="app-splash-logo-wrap">
+          <img src="/branding/logo-inventarya.png" alt="Inventarya" class="app-splash-logo" />
+        </div>
+        <h1 class="app-splash-title">INVENTARYA</h1>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

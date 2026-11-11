@@ -1,0 +1,145 @@
+name: inventarya
+
+x-laravel-service: &laravel-service
+  image: inventarya-backend:${APP_IMAGE_TAG:-latest}
+  restart: unless-stopped
+  init: true
+  env_file:
+    - ${APP_ENV_FILE:-.env.production}
+  volumes:
+    # The host Nginx reads public uploads from this same path.
+    - ./storage:/var/www/html/storage
+    # Firebase Admin SDK credentials - production only.
+    - /etc/inventarya/secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+
+  networks:
+    - inventarya-private
+    - inventarya-edge
+  depends_on:
+    inventarya-postgres:
+      condition: service_healthy
+    inventarya-redis:
+      condition: service_healthy
+  security_opt:
+    - no-new-privileges:true
+  stop_grace_period: 90s
+
+services:
+  inventarya-app:
+    <<: *laravel-service
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: production
+    ports:
+      - "127.0.0.1:9000:9000"
+    healthcheck:
+      test: [ "CMD-SHELL", "php -r 'exit(@fsockopen(\"127.0.0.1\", 9000) ? 0 : 1);'" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  inventarya-queue:
+    <<: *laravel-service
+    command:
+      - php
+      - artisan
+      - queue:work
+      - redis
+      - --sleep=3
+      - --tries=3
+      - --backoff=5
+      - --timeout=60
+      - --max-time=3600
+      - --no-interaction
+    healthcheck:
+      test: [ "CMD-SHELL", "pgrep -f '[a]rtisan queue:work redis' >/dev/null || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  inventarya-scheduler:
+    <<: *laravel-service
+    command: [ "php", "artisan", "schedule:work", "--no-interaction" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pgrep -f '[a]rtisan schedule:work' >/dev/null || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  inventarya-reverb:
+    <<: *laravel-service
+    command:
+      - php
+      - artisan
+      - reverb:start
+      - --host=0.0.0.0
+      - --port=8080
+      - --no-interaction
+    ports:
+      - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "php -r 'exit(@fsockopen(\"127.0.0.1\", 8080) ? 0 : 1);'" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  inventarya-postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?DB_DATABASE is required}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - inventarya_postgres_data:/var/lib/postgresql/data
+    networks:
+      - inventarya-private
+    expose:
+      - "5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\"" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    stop_grace_period: 60s
+
+  inventarya-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command: [ "redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}" ]
+    volumes:
+      - inventarya_redis_data:/data
+    networks:
+      - inventarya-private
+    expose:
+      - "6379"
+    healthcheck:
+      test: [ "CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  inventarya_postgres_data:
+    name: inventarya_postgres_data
+  inventarya_redis_data:
+    name: inventarya_redis_data
+
+networks:
+  inventarya-private:
+    name: inventarya_private
+    driver: bridge
+    internal: true
+  inventarya-edge:
+    name: inventarya_edge
+    driver: bridge

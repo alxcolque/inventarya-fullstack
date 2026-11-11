@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@layer utilities {
+  /* ==========================================================================
+     SCROLL INVISIBLE UNIVERSAL (PC Y CELULAR)
+     Oculta completamente la barra de scroll en Chrome, Edge, Safari, Firefox,
+     Android, iOS y Capacitor, manteniendo 100% operativo el desplazamiento
+     con rueda de mouse, trackpad y gestos táctiles.
+     ========================================================================== */
+  .no-scrollbar::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar,
+  [data-sidebar-body]::-webkit-scrollbar,
+  [data-sidebar-scroll]::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+    -webkit-appearance: none !important;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-thumb,
+  .scrollbar-none::-webkit-scrollbar-thumb,
+  [data-sidebar-body]::-webkit-scrollbar-thumb,
+  [data-sidebar-scroll]::-webkit-scrollbar-thumb {
+    display: none !important;
+    background: transparent !important;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-track,
+  .scrollbar-none::-webkit-scrollbar-track,
+  [data-sidebar-body]::-webkit-scrollbar-track,
+  [data-sidebar-scroll]::-webkit-scrollbar-track {
+    display: none !important;
+    background: transparent !important;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-corner,
+  .scrollbar-none::-webkit-scrollbar-corner,
+  [data-sidebar-body]::-webkit-scrollbar-corner,
+  [data-sidebar-scroll]::-webkit-scrollbar-corner {
+    display: none !important;
+    background: transparent !important;
+  }
+
+  .no-scrollbar,
+  .scrollbar-none,
+  [data-sidebar-body],
+  [data-sidebar-scroll] {
+    -ms-overflow-style: none !important; /* IE y Edge Legacy */
+    scrollbar-width: none !important;    /* Firefox */
+    -webkit-overflow-scrolling: touch !important; /* Momentum scroll suave en iOS/Android */
+  }
+}
+
+/* ==========================================================================
+   ELEVACIÓN GLOBAL UNIFORME DE MODALES (NEXTUI MODAL)
+   Garantiza que TODOS los modales existentes en tenant y central se sitúen
+   siempre por encima de la barra de navegación (z-[20]), sidebar (z-[20])
+   y cualquier elemento de layout en todo el proyecto.
+   ========================================================================== */
+div[data-slot="backdrop"] {
+  z-index: 1000 !important;
+}
+
+div[data-slot="wrapper"] {
+  z-index: 1001 !important;
+}
+
+/* Menús emergentes, Popovers, Selects y Dropdowns de NextUI (dentro o fuera de modales) */
+div[data-slot="popover"],
+div[data-slot="content"][role="dialog"],
+div[data-slot="menu"],
+div[data-slot="listbox"],
+[data-overlay-container="true"] {
+  z-index: 1050 !important;
+}

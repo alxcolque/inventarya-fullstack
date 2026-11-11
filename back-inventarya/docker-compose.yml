@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: stockly_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: central_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - stockly_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d central_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: stockly_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - stockly_network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: stockly_postgres_data
+  redis_data:
+    name: stockly_redis_data
+
+networks:
+  stockly_network:
+    name: stockly_network
+    driver: bridge

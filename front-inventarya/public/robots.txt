@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /activate-account
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /tenants
+Disallow: /subscriptions
+Disallow: /payments
+Disallow: /administrators
+Disallow: /monitoring
+Disallow: /settings
+Disallow: /developer
+Disallow: /users
+Disallow: /inventories
+Disallow: /inventory
+Disallow: /sales
+Disallow: /orders
+Disallow: /notifications
+
+Sitemap: https://inventarya.com/sitemap.xml

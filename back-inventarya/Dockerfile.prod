@@ -1,0 +1,84 @@
+FROM php:8.3-fpm-bookworm AS php-base
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        libfreetype6-dev \
+        libicu-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libpq-dev \
+        libwebp-dev \
+        libzip-dev \
+        postgresql-client \
+        procps \
+        unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j"$(nproc)" \
+        bcmath \
+        exif \
+        gd \
+        intl \
+        opcache \
+        pcntl \
+        pdo_pgsql \
+        sockets \
+        zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && rm -rf /tmp/pear /var/lib/apt/lists/*
+
+COPY docker/php/production.ini /usr/local/etc/php/conf.d/zz-inventarya-production.ini
+
+WORKDIR /var/www/html
+
+FROM php-base AS vendor
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY composer.json composer.lock ./
+
+RUN composer install \
+    --no-dev \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-interaction \
+    --no-progress \
+    --no-scripts
+
+COPY . .
+
+RUN mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views \
+    && composer dump-autoload \
+        --no-dev \
+        --classmap-authoritative \
+        --no-interaction \
+        --no-scripts \
+    && php artisan package:discover --ansi
+
+FROM php-base AS production
+
+COPY --from=vendor /var/www/html /var/www/html
+
+RUN mkdir -p \
+        bootstrap/cache \
+        storage/app/public \
+        storage/framework/cache/data \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R ug+rwX,o-rwx storage bootstrap/cache \
+    && ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
+
+USER www-data
+
+EXPOSE 9000
+
+STOPSIGNAL SIGQUIT
+
+CMD ["php-fpm", "-F"]
