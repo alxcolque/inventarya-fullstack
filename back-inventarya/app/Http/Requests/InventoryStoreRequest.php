@@ -34,6 +34,7 @@ class InventoryStoreRequest extends FormRequest
                 'expiration_date' => 'nullable|date',
                 'location_id'     => 'nullable|exists:locations,id',
                 'metadata'        => 'nullable',
+                'is_public'       => 'sometimes|boolean',
             ];
         }
 
@@ -49,6 +50,7 @@ class InventoryStoreRequest extends FormRequest
             'expiration_date' => 'nullable|date',
             'location_id'     => 'nullable|exists:locations,id',
             'metadata'        => 'nullable',
+            'is_public'       => 'sometimes|boolean',
         ];
     }
 
@@ -76,6 +78,7 @@ class InventoryStoreRequest extends FormRequest
             'sale_price.required' => 'El precio de venta es requerido',
             'sale_price.numeric' => 'El precio de venta debe ser un número',
             'sale_price.min' => 'El precio de venta debe ser mayor o igual a 0',
+            'is_public.boolean' => 'La visibilidad pública debe ser verdadera o falsa',
         ];
     }
 }

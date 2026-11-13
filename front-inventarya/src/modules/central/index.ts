@@ -1,4 +1,5 @@
 export * from './analytics';
+export * from './business-types';
 export * from './payments';
 export * from './plans';
 export * from './subscriptions';

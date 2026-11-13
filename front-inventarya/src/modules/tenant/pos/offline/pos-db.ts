@@ -36,6 +36,7 @@ export interface PosOfflineProduct {
   stock_quantity: number;
   min_stock?: number;
   expiration_date?: string | null;
+  is_public?: boolean;
   updated_at: number;
 }
 

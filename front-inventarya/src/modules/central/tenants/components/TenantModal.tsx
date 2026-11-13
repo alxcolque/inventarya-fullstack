@@ -17,7 +17,8 @@ import { useForm } from "react-hook-form";
 import { ITenant } from "@/interface";
 import { useTenantsStore } from "../store/tenants.store";
 import { usePlansStore } from "../../plans/store/plans.store";
-import { LuBuilding, LuDatabase, LuGlobe, LuMail, LuPhone, LuMapPin, LuCalendar, LuRocket } from "react-icons/lu";
+import { useBusinessTypesStore } from "../../business-types/store/businessTypes.store";
+import { LuBriefcase, LuBuilding, LuDatabase, LuGlobe, LuMail, LuPhone, LuMapPin, LuCalendar, LuRocket } from "react-icons/lu";
 import { TenantWizard } from "./TenantWizard";
 
 interface Props {
@@ -29,6 +30,7 @@ interface Props {
 export const TenantModal = ({ isOpen, onClose, tenant }: Props) => {
   const { createTenant, updateTenant, isLoading } = useTenantsStore();
   const { plans, getPlans } = usePlansStore();
+  const { options: businessTypeOptions, getActiveOptions } = useBusinessTypesStore();
   
   const { 
     register, 
@@ -56,7 +58,21 @@ export const TenantModal = ({ isOpen, onClose, tenant }: Props) => {
 
   useEffect(() => {
     getPlans();
-  }, [getPlans]);
+    getActiveOptions();
+  }, [getPlans, getActiveOptions]);
+
+  const availableBusinessTypes = React.useMemo(() => {
+    if (
+      tenant?.business_type &&
+      !businessTypeOptions.some((bt) => bt.id === tenant.business_type?.id)
+    ) {
+      return [
+        { id: tenant.business_type.id, name: `${tenant.business_type.name} (Inactivo)`, slug: tenant.business_type.slug },
+        ...businessTypeOptions,
+      ];
+    }
+    return businessTypeOptions;
+  }, [businessTypeOptions, tenant?.business_type]);
 
   useEffect(() => {
     if (tenant && isOpen) {
@@ -184,6 +200,25 @@ export const TenantModal = ({ isOpen, onClose, tenant }: Props) => {
                       isInvalid={!!errors.id}
                       errorMessage={errors.id?.message}
                     />
+                    <Select
+                      label="Tipo de negocio"
+                      placeholder="Selecciona un tipo de negocio"
+                      labelPlacement="outside"
+                      className="md:col-span-2"
+                      startContent={<LuBriefcase size={16} className="text-default-400" />}
+                      selectedKeys={watch("business_type_id") ? [String(watch("business_type_id"))] : []}
+                      onSelectionChange={(keys) => {
+                        const selected = Array.from(keys)[0] as string;
+                        setValue("business_type_id", selected ? Number(selected) : null, { shouldValidate: true });
+                      }}
+                      description="Determina los campos adicionales de productos para este tenant."
+                    >
+                      {availableBusinessTypes.map((bt) => (
+                        <SelectItem key={String(bt.id)} value={String(bt.id)}>
+                          {bt.name}
+                        </SelectItem>
+                      ))}
+                    </Select>
                   </div>
                 </Tab>
 

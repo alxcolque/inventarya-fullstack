@@ -1,13 +1,19 @@
 import React, { useEffect } from "react";
-import { Input } from "@nextui-org/react";
+import { Input, Select, SelectItem } from "@nextui-org/react";
 import { useForm } from "react-hook-form";
 import { useTenantFormStore } from "../store/tenantForm.store";
 import { useTenantsStore } from "../store/tenants.store";
-import { LuBuilding, LuDatabase } from "react-icons/lu";
+import { useBusinessTypesStore } from "../../business-types/store/businessTypes.store";
+import { LuBriefcase, LuBuilding, LuDatabase } from "react-icons/lu";
 
 export const TenantCompanyStep = () => {
   const { formData, updateSection, setStepValid } = useTenantFormStore();
   const { tenants } = useTenantsStore();
+  const { options: businessTypeOptions, getActiveOptions } = useBusinessTypesStore();
+
+  useEffect(() => {
+    getActiveOptions();
+  }, [getActiveOptions]);
 
   const {
     register,
@@ -20,12 +26,14 @@ export const TenantCompanyStep = () => {
       name: formData.tenant.name,
       slug: formData.tenant.slug,
       database: formData.tenant.database,
+      business_type_id: formData.tenant.business_type_id ? String(formData.tenant.business_type_id) : "",
     },
   });
 
   const nameValue = watch("name");
   const slugValue = watch("slug");
   const databaseValue = watch("database");
+  const businessTypeIdValue = watch("business_type_id");
 
   // Validate database uniqueness locally against known tenants
   const validateDatabaseUniqueness = (val: string) => {
@@ -61,15 +69,18 @@ export const TenantCompanyStep = () => {
 
   // Sync with store and validate step
   useEffect(() => {
-    setStepValid(0, isValid);
-    if (isValid) {
+    const parsedTypeId = businessTypeIdValue ? Number(businessTypeIdValue) : null;
+    const stepOk = isValid && Boolean(parsedTypeId);
+    setStepValid(0, stepOk);
+    if (stepOk) {
       updateSection("tenant", {
         name: nameValue,
         slug: slugValue,
         database: databaseValue,
+        business_type_id: parsedTypeId,
       });
     }
-  }, [isValid, nameValue, slugValue, databaseValue, updateSection, setStepValid]);
+  }, [isValid, nameValue, slugValue, databaseValue, businessTypeIdValue, updateSection, setStepValid]);
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
@@ -113,6 +124,29 @@ export const TenantCompanyStep = () => {
           isInvalid={!!errors.database}
           errorMessage={errors.database?.message as string}
         />
+
+        <Select
+          isRequired
+          label="Tipo de negocio"
+          placeholder="Selecciona un tipo de negocio"
+          labelPlacement="outside"
+          className="md:col-span-2"
+          startContent={<LuBriefcase size={18} className="text-default-400" />}
+          selectedKeys={businessTypeIdValue ? [String(businessTypeIdValue)] : []}
+          onSelectionChange={(keys) => {
+            const selected = Array.from(keys)[0] as string;
+            setValue("business_type_id", selected || "", { shouldValidate: true });
+          }}
+          description="Define los campos adicionales que tendrán los productos de este negocio."
+          isInvalid={!businessTypeIdValue}
+          errorMessage={!businessTypeIdValue ? "Debes seleccionar un tipo de negocio" : undefined}
+        >
+          {businessTypeOptions.map((bt) => (
+            <SelectItem key={String(bt.id)} value={String(bt.id)}>
+              {bt.name}
+            </SelectItem>
+          ))}
+        </Select>
       </div>
     </div>
   );

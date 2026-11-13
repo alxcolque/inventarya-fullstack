@@ -14,6 +14,7 @@ use App\Observers\InventoryStockObserver;
 use App\Observers\TenantDomainCacheObserver;
 use App\Permissions\CentralPermissions;
 use App\Permissions\TenantPermissions;
+use App\Services\ProductAttributeService;
 use App\Services\UnconfiguredDomainOwnershipVerifier;
 use App\Tenancy\EloquentTenantDomainRepository;
 use App\Tenancy\TenantDomainRepository;
@@ -30,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(TenantDomainRepository::class, EloquentTenantDomainRepository::class);
         $this->app->bind(DomainOwnershipVerifier::class, UnconfiguredDomainOwnershipVerifier::class);
+        $this->app->scoped(ProductAttributeService::class);
     }
 
     /**

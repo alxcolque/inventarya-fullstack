@@ -7,6 +7,8 @@ import { PrivacyPage } from '@/pages/privacy-page';
 import { DeleteAccountPage } from '@/pages/delete-account-page';
 import {
   AnalyticsDashboard,
+  BusinessTypesPage,
+  BusinessTypeDetailPage,
   PaymentsPage,
   PlansPage,
   SubscriptionsPage,
@@ -47,8 +49,10 @@ export const centralRoutes: RouteObject[] = [
         element: <CentralLayout />,
         children: [
           // Business
-          { path: 'tenants',        element: <TenantsPage /> },
-          { path: 'subscriptions',  element: <SubscriptionsPage /> },
+          { path: 'tenants',           element: <TenantsPage /> },
+          { path: 'business-types',    element: <BusinessTypesPage /> },
+          { path: 'business-types/:id', element: <BusinessTypeDetailPage /> },
+          { path: 'subscriptions',     element: <SubscriptionsPage /> },
           { path: 'plans',          element: <PlansPage /> },
           { path: 'payments',       element: <PaymentsPage /> },
           

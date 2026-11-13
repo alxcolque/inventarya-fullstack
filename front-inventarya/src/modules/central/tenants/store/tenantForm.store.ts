@@ -5,6 +5,7 @@ export interface IWizardFormData {
     name: string;
     slug: string;
     database: string;
+    business_type_id: number | null;
     owner_name: string;
     owner_email: string;
     owner_phone: string;
@@ -68,6 +69,7 @@ const initialFormData: IWizardFormData = {
     name: "",
     slug: "",
     database: "",
+    business_type_id: null,
     owner_name: "",
     owner_email: "",
     owner_phone: "",

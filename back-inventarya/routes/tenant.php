@@ -38,6 +38,7 @@ use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SiatController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\TenantBusinessTypeController;
 use App\Http\Controllers\TenantDashboardController;
 use App\Http\Controllers\TenantPlanController;
 use App\Http\Controllers\UserController;
@@ -132,6 +133,9 @@ Route::middleware([
             Route::get('/settings', [SettingController::class, 'index']);
             Route::get('/settings/system-data', [SettingController::class, 'getSystemData']);
             Route::get('/settings/{id}', [SettingController::class, 'show']);
+
+            /* BUSINESS TYPE — product-field contract of the authenticated tenant */
+            Route::get('/business-type/product-fields', [TenantBusinessTypeController::class, 'productFields']);
 
             /* STORE */
             Route::apiResource('/stores', StoreController::class);

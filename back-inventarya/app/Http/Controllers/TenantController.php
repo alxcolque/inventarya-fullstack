@@ -9,6 +9,7 @@ use App\Support\DomainNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 
 class TenantController extends Controller
@@ -22,7 +23,7 @@ class TenantController extends Controller
 
     public function index()
     {
-        $tenants = Tenant::with(['domains', 'plan', 'subscriptions', 'payments', 'currentSubscription'])->get();
+        $tenants = Tenant::with(['domains', 'plan', 'subscriptions', 'payments', 'currentSubscription', 'businessType:id,name,slug,is_active'])->get();
 
         return response()->json($tenants);
     }
@@ -118,7 +119,7 @@ class TenantController extends Controller
 
     public function show($id)
     {
-        $tenant = Tenant::with(['domains', 'plan', 'subscriptions', 'payments', 'currentSubscription'])->find($id);
+        $tenant = Tenant::with(['domains', 'plan', 'subscriptions', 'payments', 'currentSubscription', 'businessType:id,name,slug,is_active'])->find($id);
         if (! $tenant) {
             return response()->json(['message' => 'Tenant no encontrado'], 404);
         }
@@ -151,6 +152,14 @@ class TenantController extends Controller
             'owner_email' => 'nullable|email|max:150',
             'owner_phone' => 'nullable|string|max:50',
             'data' => 'nullable|array',
+            'business_type_id' => [
+                'nullable',
+                'integer',
+                // Active types only, except the one the tenant already has.
+                Rule::exists('central.business_types', 'id')->where(
+                    fn ($query) => $query->where('is_active', true)->orWhere('id', $tenant->business_type_id)
+                ),
+            ],
         ], [
             'required' => 'El campo :attribute es obligatorio.',
             'string' => 'El campo :attribute debe ser una cadena de texto.',
@@ -158,6 +167,7 @@ class TenantController extends Controller
             'email' => 'El campo :attribute debe ser un correo electrónico válido.',
             'exists' => 'El campo :attribute seleccionado no existe.',
             'unique' => 'El campo :attribute ya está en uso.',
+            'business_type_id.exists' => 'El tipo de negocio seleccionado no existe o está inactivo.',
         ], [
             'name' => 'nombre del negocio',
             'slug' => 'slug del negocio',
@@ -171,7 +181,17 @@ class TenantController extends Controller
             'owner_email' => 'correo del propietario',
             'owner_phone' => 'teléfono del propietario',
             'data' => 'datos adicionales',
+            'business_type_id' => 'tipo de negocio',
         ]);
+
+        // A tenant never loses its business type; null is ignored.
+        if (array_key_exists('business_type_id', $data)) {
+            if ($data['business_type_id'] === null) {
+                unset($data['business_type_id']);
+            } else {
+                $this->tenantService->assertBusinessTypeChangeAllowed($tenant, (int) $data['business_type_id']);
+            }
+        }
 
         $wasInactive = $tenant->status !== 'active';
         $tenant->update($data);

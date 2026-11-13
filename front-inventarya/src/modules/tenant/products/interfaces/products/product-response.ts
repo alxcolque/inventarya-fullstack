@@ -16,6 +16,7 @@ export interface IProductResponse {
     brand?: string;
     sku?: string;
     barcode?: string;
+    attributes?: Record<string, any>;
     created_at?: string;
     updated_at?: string;
 }

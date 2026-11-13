@@ -8,6 +8,7 @@ import {
   Button,
   Input,
   Chip,
+  Switch,
 } from "@nextui-org/react";
 import {
   FaBoxesStacked,
@@ -67,6 +68,7 @@ export const ModalEditStoreInventory: React.FC<ModalEditStoreInventoryProps> = (
   const [minStock, setMinStock] = useState<string>("0");
   const [unit, setUnit] = useState<string>("Unidad");
   const [expirationDate, setExpirationDate] = useState<string>("");
+  const [isPublic, setIsPublic] = useState<boolean>(true);
 
   // Hook de adaptación responsiva y gestión del teclado móvil
   const {
@@ -131,6 +133,7 @@ export const ModalEditStoreInventory: React.FC<ModalEditStoreInventoryProps> = (
       setMinStock(String(product.min_stock ?? 0));
       setUnit(product.unit || "Unidad");
       setExpirationDate(product.expiration_date ? String(product.expiration_date).split("T")[0] : "");
+      setIsPublic(product.is_public !== undefined ? Boolean(product.is_public) : true);
     }
   }, [product, isOpen]);
 
@@ -214,6 +217,7 @@ export const ModalEditStoreInventory: React.FC<ModalEditStoreInventoryProps> = (
       min_stock: !isNaN(numMinStock) && numMinStock >= 0 ? numMinStock : 0,
       unit: unit.trim() || "Unidad",
       expiration_date: expirationDate || null,
+      is_public: isPublic,
     };
 
     try {
@@ -230,6 +234,7 @@ export const ModalEditStoreInventory: React.FC<ModalEditStoreInventoryProps> = (
         min_stock: payload.min_stock,
         unit: payload.unit,
         expiration_date: payload.expiration_date,
+        is_public: payload.is_public,
       });
 
       toast.success("Inventario de tienda actualizado correctamente.");
@@ -573,6 +578,37 @@ export const ModalEditStoreInventory: React.FC<ModalEditStoreInventoryProps> = (
                         description="Fecha de caducidad del lote (opcional)"
                       />
                     </div>
+                  </div>
+
+                  {/* SECCIÓN 4: VISIBILIDAD PÚBLICA */}
+                  <div className="p-3 rounded-2xl bg-default-50 dark:bg-default-100/40 border border-default-200/80 flex items-center justify-between gap-3">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-default-700">
+                          Visibilidad en consultas públicas
+                        </span>
+                        <Chip
+                          size="sm"
+                          variant="flat"
+                          color={isPublic ? "success" : "default"}
+                          className="h-5 text-[10px] font-bold"
+                        >
+                          {isPublic ? "Público" : "Privado"}
+                        </Chip>
+                      </div>
+                      <span className="text-[11px] text-default-400">
+                        {isPublic
+                          ? "Público: visible en catálogo externo y consultas públicas."
+                          : "Privado: oculto en consultas públicas; disponible internamente en POS."}
+                      </span>
+                    </div>
+                    <Switch
+                      size="sm"
+                      color="success"
+                      isSelected={isPublic}
+                      onValueChange={setIsPublic}
+                      aria-label="Visibilidad pública del inventario"
+                    />
                   </div>
                 </ModalBody>
 

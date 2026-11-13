@@ -40,6 +40,13 @@ import { ImageCropperModal } from "@/components/common/ImageCropperModal";
 import { validateImageFile } from "@/utils/image-crop";
 import { ProductQuickNavigator } from "../../components/ProductQuickNavigator";
 import { BarcodeScannerModal } from "@/modules/tenant/pos/pages/pos/components/BarcodeScannerModal";
+import { useTenantBusinessTypeFieldsStore } from "../../store/products/business-type-fields.store";
+import {
+  AttributeErrors,
+  AttributeValues,
+  DynamicProductAttributes,
+  validateDynamicAttributes,
+} from "../../components/DynamicProductAttributes";
 
 interface CreateProductProps {
   isEditing?: boolean;
@@ -67,6 +74,10 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
   const brands = useBrandsStore((state) => state.brands);
   const getBrands = useBrandsStore((state) => state.getBrands);
 
+  const businessType = useTenantBusinessTypeFieldsStore((state) => state.businessType);
+  const dynamicFields = useTenantBusinessTypeFieldsStore((state) => state.fields);
+  const fetchDynamicFields = useTenantBusinessTypeFieldsStore((state) => state.fetchFields);
+
   // Form states
   const [name, setName] = useState<string>("");
   const [categoryId, setCategoryId] = useState<string>("");
@@ -74,6 +85,8 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
   const [sku, setSku] = useState<string>("");
   const [barcode, setBarcode] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [attributes, setAttributes] = useState<AttributeValues>({});
+  const [attributeErrors, setAttributeErrors] = useState<AttributeErrors>({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState<boolean>(false);
@@ -116,11 +129,12 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
     return prefix.padEnd(3, "X");
   }, [name]);
 
-  // Cargar categorías y marcas si no están cargadas
+  // Cargar categorías, marcas y campos del tipo de negocio si no están cargados
   useEffect(() => {
     if (categories.length === 0) getCategories(token || undefined);
     if (brands.length === 0) getBrands(token || undefined);
-  }, [categories.length, brands.length, getCategories, getBrands, token]);
+    fetchDynamicFields();
+  }, [categories.length, brands.length, getCategories, getBrands, fetchDynamicFields, token]);
 
   // Si no está editando y se cargan las categorías/marcas, asignar valores por defecto si aún no hay
   useEffect(() => {
@@ -166,6 +180,10 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
             setSku(prod.sku || "");
             setBarcode(prod.barcode || "");
             setDescription(prod.description || "");
+            setAttributes(
+              prod.attributes && typeof prod.attributes === "object" ? prod.attributes : {}
+            );
+            setAttributeErrors({});
             const existingImg = prod.image || prod.thumbnail;
             if (existingImg) {
               setImagePreview(getImageUrl(existingImg));
@@ -293,6 +311,14 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
       return;
     }
 
+    const attrErrors = validateDynamicAttributes(dynamicFields, attributes);
+    if (Object.keys(attrErrors).length > 0) {
+      setAttributeErrors(attrErrors);
+      toast.error(Object.values(attrErrors)[0]);
+      return;
+    }
+    setAttributeErrors({});
+
     setIsSubmitting(true);
 
     const payload: any = {
@@ -303,6 +329,18 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
       barcode: barcode.trim() || null,
       description: description.trim() || null,
     };
+
+    if (dynamicFields.length > 0) {
+      const cleanAttributes: Record<string, any> = {};
+      for (const field of dynamicFields) {
+        if (field.key in attributes) {
+          cleanAttributes[field.key] = attributes[field.key];
+        } else if (field.type === "boolean") {
+          cleanAttributes[field.key] = false;
+        }
+      }
+      payload.attributes = cleanAttributes;
+    }
 
     if (imageBase64) {
       payload.image = imageBase64;
@@ -336,6 +374,9 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
           setSku(fresh.sku || "");
           setBarcode(fresh.barcode || "");
           setDescription(fresh.description || "");
+          setAttributes(
+            fresh.attributes && typeof fresh.attributes === "object" ? fresh.attributes : {}
+          );
           const freshImg = fresh.image || fresh.thumbnail;
           if (freshImg) {
             setImagePreview(getImageUrl(freshImg));
@@ -683,6 +724,24 @@ export const CreateProduct = ({ isEditing: propIsEditing }: CreateProductProps) 
                 />
               </CardBody>
             </Card>
+
+            {/* Atributos dinámicos según tipo de negocio */}
+            <DynamicProductAttributes
+              businessTypeName={businessType?.name}
+              fields={dynamicFields}
+              values={attributes}
+              errors={attributeErrors}
+              onChange={(key, value) => {
+                setAttributes((prev) => ({ ...prev, [key]: value }));
+                if (attributeErrors[key]) {
+                  setAttributeErrors((prev) => {
+                    const next = { ...prev };
+                    delete next[key];
+                    return next;
+                  });
+                }
+              }}
+            />
 
             {/* Footer de acción inferior */}
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">

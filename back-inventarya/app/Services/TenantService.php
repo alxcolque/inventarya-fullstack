@@ -6,6 +6,7 @@ use App\Events\Central\PaymentReceivedEvent;
 use App\Events\Central\TenantApprovedEvent;
 use App\Models\Payment;
 use App\Models\Plan;
+use App\Models\Product;
 use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Notifications\Tenant\PaymentStatusNotification;
@@ -14,6 +15,7 @@ use App\Support\DomainNormalizer;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class TenantService
 {
@@ -66,6 +68,7 @@ class TenantService
                 'owner_email' => $tenantPayload['owner_email'] ?? $ownerPayload['email'],
                 'owner_phone' => $tenantPayload['owner_phone'] ?? null,
                 'logo' => $tenantPayload['logo'] ?? null,
+                'business_type_id' => $tenantPayload['business_type_id'] ?? null,
                 'data' => $metadata,
                 'plan_id' => $plan->id,
             ]);
@@ -151,6 +154,45 @@ class TenantService
         }
 
         return $tenant;
+    }
+
+    /**
+     * A tenant that already stores product attributes cannot switch to a
+     * different business type: the stored keys would no longer match the
+     * contract. Assigning a type to a tenant without one is always allowed.
+     *
+     * @throws ValidationException
+     */
+    public function assertBusinessTypeChangeAllowed(Tenant $tenant, int $newBusinessTypeId): void
+    {
+        $current = $tenant->business_type_id;
+
+        if ($current === null || (int) $current === $newBusinessTypeId) {
+            return;
+        }
+
+        try {
+            $hasAttributes = $this->tenantHasProductAttributes($tenant);
+        } catch (\Throwable $exception) {
+            Log::warning('No se pudo verificar los atributos de productos del tenant.', [
+                'tenant_id' => $tenant->id,
+                'exception' => $exception->getMessage(),
+            ]);
+            $hasAttributes = true;
+        }
+
+        if ($hasAttributes) {
+            throw ValidationException::withMessages([
+                'business_type_id' => 'El tenant ya tiene productos con atributos propios de su tipo de negocio actual. No es posible cambiarlo sin una migración de datos.',
+            ]);
+        }
+    }
+
+    protected function tenantHasProductAttributes(Tenant $tenant): bool
+    {
+        return (bool) $tenant->run(
+            fn () => Product::query()->where('attributes', '!=', '{}')->exists()
+        );
     }
 
     /**

@@ -60,6 +60,7 @@ export const TenantWizard = ({ onSuccess, onCancel }: Props) => {
         name: formData.tenant.name,
         slug: formData.tenant.slug,
         database: formData.tenant.database,
+        business_type_id: formData.tenant.business_type_id,
         owner_name: formData.owner.name,
         owner_email: formData.owner.email,
         owner_phone: fullOwnerPhone,

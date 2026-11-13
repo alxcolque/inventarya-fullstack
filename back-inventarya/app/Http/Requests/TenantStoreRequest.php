@@ -6,6 +6,7 @@ use App\Rules\ValidDomain;
 use App\Support\DomainConfiguration;
 use App\Support\DomainNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
 
@@ -28,6 +29,11 @@ class TenantStoreRequest extends FormRequest
             'tenant.owner_phone' => 'nullable|string|max:50',
             'tenant.logo' => 'nullable|string',
             'tenant.data' => 'nullable|array',
+            'tenant.business_type_id' => [
+                'required',
+                'integer',
+                Rule::exists('central.business_types', 'id')->where('is_active', true),
+            ],
 
             // Domain details
             'domains' => 'sometimes|array',
@@ -110,6 +116,7 @@ class TenantStoreRequest extends FormRequest
             'tenant.owner_name' => 'nombre del propietario',
             'tenant.owner_email' => 'correo del propietario',
             'tenant.owner_phone' => 'teléfono del propietario',
+            'tenant.business_type_id' => 'tipo de negocio',
             'domains' => 'dominios',
             'domains.*.domain' => 'dominio',
             'domains.*.type' => 'tipo de dominio',
@@ -137,6 +144,8 @@ class TenantStoreRequest extends FormRequest
             'in' => 'El valor seleccionado para :attribute no es válido.',
             'exists' => 'El campo :attribute seleccionado no existe.',
             'unique' => 'El campo :attribute ya está en uso.',
+            'tenant.business_type_id.required' => 'Debes seleccionar un tipo de negocio.',
+            'tenant.business_type_id.exists' => 'El tipo de negocio seleccionado no existe o está inactivo.',
         ];
     }
 }

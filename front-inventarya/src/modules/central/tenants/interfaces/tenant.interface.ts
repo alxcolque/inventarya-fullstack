@@ -16,6 +16,13 @@ export interface ITenant {
   logo?: string | null;
   data?: Record<string, any> | null;
   plan_id: number | null;
+  business_type_id?: number | null;
+  business_type?: {
+    id: number;
+    name: string;
+    slug: string;
+    is_active?: boolean;
+  } | null;
   current_subscription_id: number | null;
   trial_ends_at: string | null;
   email?: string | null;

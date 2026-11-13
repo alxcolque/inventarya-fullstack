@@ -25,7 +25,9 @@ class ExternalStoreProductController extends Controller
             ], 403);
         }
 
+        // Solo los registros marcados como públicos se exponen al sitio externo.
         $query = InventoryStore::where('store_id', $store->id)
+            ->where('is_public', true)
             ->with([
                 'product.category',
                 'product.brand',

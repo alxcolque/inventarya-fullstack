@@ -104,6 +104,10 @@ export type CentralPermission =
   | 'subscriptions:view'
   | 'subscriptions:manage'
 
+  // Business Types
+  | 'business-types:view'
+  | 'business-types:manage'
+
   // Payments
   | 'payments:view'
   | 'payments:confirm'
@@ -237,6 +241,7 @@ export const CENTRAL_PERMISSIONS: Record<string, string[]> = {
     // Planes & Suscripciones (solo vista)
     'plans:view',
     'subscriptions:view',
+    'business-types:view',
 
     // Pagos (ver y confirmar)
     'payments:view',

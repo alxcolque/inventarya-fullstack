@@ -188,6 +188,7 @@ class InventoryStoreController extends Controller
                 'location'        => $location?->name,
                 'location_path'   => $location?->full_path,
                 'metadata'        => $item->metadata,
+                'is_public'       => (bool) $item->is_public,
             ];
         }
 
@@ -228,6 +229,7 @@ class InventoryStoreController extends Controller
                     'location'       => $item['location'],
                     'location_path'  => $item['location_path'],
                     'metadata'       => $item['metadata'],
+                    'is_public'      => $item['is_public'],
                 ])->values(),
             ];
         })->values();
@@ -504,6 +506,7 @@ class InventoryStoreController extends Controller
                 'stock'           => $item->stock_quantity,
                 'stock_quantity'  => $item->stock_quantity,
                 'min_stock'       => $item->min_stock,
+                'is_public'       => (bool) $item->is_public,
                 'category'        => $leafCategory,
                 'category_name'   => $leafCategory,
                 'category_path'   => $leafCategory,

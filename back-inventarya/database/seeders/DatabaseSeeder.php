@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             PlanSeeder::class,
+            BusinessTypeSeeder::class,
             ConfigurationSeeder::class,
             FaqSeeder::class,
             // UserSeeder::class, // Users table is in the tenant schema

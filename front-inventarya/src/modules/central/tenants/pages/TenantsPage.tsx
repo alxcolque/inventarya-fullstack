@@ -163,10 +163,15 @@ export const TenantsPage = () => {
       case "plan":
         return (
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Chip size="sm" variant="dot" color="primary" className="border-none p-0 h-auto font-bold">
                 {tenant.plan?.name || "Sin plan"}
               </Chip>
+              {tenant.business_type && (
+                <Chip size="sm" variant="flat" color="secondary" className="h-5 text-[10px] font-semibold">
+                  {tenant.business_type.name}
+                </Chip>
+              )}
             </div>
             <p className="text-tiny text-default-400 flex items-center gap-1 font-mono">
               DB: {tenant.database ? `tenant_${tenant.database}` : "—"}

@@ -22,6 +22,9 @@ class CentralPermissions
             'plans:view',
             'subscriptions:view',
 
+            // Business types (view only)
+            'business-types:view',
+
             // Payments (view and confirm)
             'payments:view',
             'payments:confirm',

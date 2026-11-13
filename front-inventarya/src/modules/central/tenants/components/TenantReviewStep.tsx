@@ -2,13 +2,16 @@ import React from "react";
 import { Card, CardBody, Chip, select } from "@nextui-org/react";
 import { useTenantFormStore } from "../store/tenantForm.store";
 import { usePlansStore } from "../../plans/store/plans.store";
+import { useBusinessTypesStore } from "../../business-types/store/businessTypes.store";
 import { LuBuilding, LuGlobe, LuCreditCard, LuUser, LuCheckCircle2, LuAlertTriangle, LuQrCode, LuPhone } from "react-icons/lu";
 
 export const TenantReviewStep = () => {
   const { formData, updateSection } = useTenantFormStore();
   const { plans } = usePlansStore();
+  const { options: businessTypeOptions } = useBusinessTypesStore();
 
   const selectedPlan = plans.find((p) => p.id === formData.subscription.plan_id);
+  const selectedBusinessType = businessTypeOptions.find((bt) => bt.id === formData.tenant.business_type_id);
   const isFree = selectedPlan ? Number(selectedPlan.price) === 0 : true;
 
   const paymentMethod = formData.payment.method;
@@ -52,6 +55,10 @@ export const TenantReviewStep = () => {
                 <div className="flex flex-col">
                   <span className="text-default-400">Puerto Local</span>
                   <span className="font-semibold text-default-700">{formData.tenant.data?.local_port || 5174}</span>
+                </div>
+                <div className="flex flex-col col-span-2">
+                  <span className="text-default-400">Tipo de Negocio</span>
+                  <span className="font-bold text-default-700">{selectedBusinessType?.name || "No seleccionado"}</span>
                 </div>
                 <div className="flex flex-col col-span-2 pt-1 border-t border-divider/50">
                   <span className="text-default-400 flex items-center gap-1"><LuGlobe size={12}/> Dominio Oficial</span>

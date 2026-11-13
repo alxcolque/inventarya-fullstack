@@ -56,6 +56,7 @@ import { ProductCameraModal } from "@/components/common/ProductCameraModal";
 import { selectNativePhoto } from "@/services/cameraService";
 import { validateImageFile } from "@/utils/image-crop";
 import { ProductQuickNavigator } from "../../components/ProductQuickNavigator";
+import { useTenantBusinessTypeFieldsStore } from "../../store/products/business-type-fields.store";
 
 export const ShowProducts = () => {
   const { id } = useParams();
@@ -81,6 +82,10 @@ export const ShowProducts = () => {
   const getProductImages = useProductImagesStore((state) => state.getProductImages);
   const createProductImage = useProductImagesStore((state) => state.createProductImage);
   const deleteProductImage = useProductImagesStore((state) => state.deleteProductImage);
+
+  const businessType = useTenantBusinessTypeFieldsStore((state) => state.businessType);
+  const dynamicFields = useTenantBusinessTypeFieldsStore((state) => state.fields);
+  const fetchDynamicFields = useTenantBusinessTypeFieldsStore((state) => state.fetchFields);
 
   // States
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
@@ -129,7 +134,31 @@ export const ShowProducts = () => {
 
   useEffect(() => {
     loadData();
-  }, [id]);
+    fetchDynamicFields();
+  }, [id, fetchDynamicFields]);
+
+  const formattedAttributes = useMemo(() => {
+    const raw = product?.attributes;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
+
+    const fieldMap = new Map(dynamicFields.map((f) => [f.key, f]));
+    const entries: Array<{ key: string; label: string; value: string; order: number }> = [];
+
+    for (const [key, val] of Object.entries(raw)) {
+      if (val === null || val === undefined || val === "") continue;
+      const def = fieldMap.get(key);
+      const displayValue =
+        typeof val === "boolean" ? (val ? "Sí" : "No") : String(val);
+      entries.push({
+        key,
+        label: def?.label || key,
+        value: displayValue,
+        order: def?.sort_order ?? 9999,
+      });
+    }
+
+    return entries.sort((a, b) => a.order - b.order);
+  }, [product?.attributes, dynamicFields]);
 
   // Combine main image + gallery images
   const allImages = useMemo(() => {
@@ -979,6 +1008,37 @@ export const ShowProducts = () => {
                   )}
                 </div>
               </div>
+
+              {/* Atributos dinámicos del tipo de negocio */}
+              {formattedAttributes.length > 0 && (
+                <>
+                  <Divider className="my-0.5" />
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-default-500 uppercase tracking-wider">
+                        Atributos Adicionales
+                      </span>
+                      {businessType?.name && (
+                        <Chip size="sm" variant="flat" color="primary" className="h-4.5 text-[10px] font-semibold">
+                          {businessType.name}
+                        </Chip>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {formattedAttributes.map((attr) => (
+                        <div key={attr.key} className="p-2 bg-default-50/80 rounded-xl flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-default-400 uppercase tracking-wider">
+                            {attr.label}
+                          </span>
+                          <span className="font-semibold text-xs sm:text-sm text-foreground break-words">
+                            {attr.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Precio */}
               {primaryPrice > 0 && (

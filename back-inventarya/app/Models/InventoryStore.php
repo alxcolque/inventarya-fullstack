@@ -24,6 +24,7 @@ class InventoryStore extends Model
         'expiration_date',
         'location_id',
         'metadata',
+        'is_public',
     ];
 
     public function getSalepriceAttribute()
@@ -39,6 +40,7 @@ class InventoryStore extends Model
     protected $casts = [
         'metadata' => 'array',
         'expiration_date' => 'date',
+        'is_public' => 'boolean',
     ];
 
     /* Product */

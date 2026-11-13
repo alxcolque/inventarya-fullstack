@@ -37,6 +37,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'owner_email',
             'owner_phone',
             'logo',
+            'business_type_id',
         ];
     }
 
@@ -54,6 +55,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'owner_email',
         'owner_phone',
         'logo',
+        'business_type_id',
         'data',
     ];
 
@@ -200,6 +202,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         \Illuminate\Support\Facades\Artisan::call('tenants:seed', [
             '--tenants' => [$this->id],
         ]);
+    }
+
+    public function businessType()
+    {
+        return $this->belongsTo(BusinessType::class);
     }
 
     public function subscriptions()

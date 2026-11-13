@@ -18,6 +18,7 @@ import {
   LuCode,
   LuUser,
   LuLayoutTemplate,
+  LuBriefcase,
 } from "react-icons/lu";
 
 interface NavItem {
@@ -44,8 +45,9 @@ export const CentralLayout = ({ children }: { children?: React.ReactNode }) => {
     {
       section: "Business",
       items: [
-        { title: "Tenants",       icon: <LuBuilding2 size={20} />,       href: "/tenants",       permission: "tenants:view" },
-        { title: "Subscriptions", icon: <LuRefreshCw size={20} />,        href: "/subscriptions", permission: "subscriptions:view" },
+        { title: "Tenants",       icon: <LuBuilding2 size={20} />,       href: "/tenants",        permission: "tenants:view" },
+        { title: "Tipos de Negocio", icon: <LuBriefcase size={20} />,    href: "/business-types", permission: "business-types:view" },
+        { title: "Subscriptions", icon: <LuRefreshCw size={20} />,       href: "/subscriptions",  permission: "subscriptions:view" },
         { title: "Plans",         icon: <LuClipboardList size={20} />,    href: "/plans",         permission: "plans:view" },
         { title: "Payments",      icon: <LuCreditCard size={20} />,       href: "/payments",      permission: "payments:view" },
       ]

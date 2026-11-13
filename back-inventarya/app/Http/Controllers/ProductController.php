@@ -11,6 +11,7 @@ use App\Models\Location;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Services\FileStorageService;
+use App\Services\ProductAttributeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,7 @@ class ProductController extends Controller
                     'color' => $product->category?->color ?? '#6366f1',
                     'brand_id' => $product->brand_id,
                     'brand' => $product->brand?->name ?? 'DESCONOCIDO',
+                    'attributes' => $product->attributes ?: new \stdClass,
                     'created_at' => $product->created_at,
                     'updated_at' => $product->updated_at,
                 ];
@@ -109,6 +111,7 @@ class ProductController extends Controller
             'color' => $product->category?->color ?? '#6366f1',
             'brand_id' => $product->brand_id,
             'brand' => $product->brand?->name ?? 'DESCONOCIDO',
+            'attributes' => $product->attributes ?: new \stdClass,
             'product_images' => $product->productImages,
             'productInventoryWarehouse' => $productInventoryWarehouse,
             'productInventoryStore' => $productInventoryStore,
@@ -145,6 +148,7 @@ class ProductController extends Controller
             'color' => $product->category?->color ?? '#6366f1',
             'brand_id' => $product->brand_id,
             'brand' => $product->brand?->name ?? 'DESCONOCIDO',
+            'attributes' => $product->attributes ?: new \stdClass,
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
         ];
@@ -217,6 +221,7 @@ class ProductController extends Controller
             'color' => $product->category?->color ?? '#6366f1',
             'brand_id' => $product->brand_id,
             'brand' => $product->brand?->name ?? 'DESCONOCIDO',
+            'attributes' => $product->attributes ?: new \stdClass,
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
         ];
@@ -235,6 +240,7 @@ class ProductController extends Controller
                     'stock' => $inventory->stock_quantity,
                     'stock_quantity' => $inventory->stock_quantity,
                     'min_stock' => $inventory->min_stock,
+                    'is_public' => (bool) $inventory->is_public,
                     'price' => $inventory->price,
                     'sale_price' => $inventory->sale_price,
                     'location_id' => $inventory->location_id,
@@ -268,6 +274,10 @@ class ProductController extends Controller
         }
 
         $data = $request->validated();
+        $data['attributes'] = app(ProductAttributeService::class)->merge(
+            (array) ($data['attributes'] ?? []),
+            app(ProductAttributeService::class)->activeFieldsForCurrentTenant(),
+        );
         $newImagePath = null;
 
         if ($request->filled('image')) {
@@ -316,6 +326,13 @@ class ProductController extends Controller
         }
 
         $data = $request->validated();
+        if (array_key_exists('attributes', $data)) {
+            $data['attributes'] = app(ProductAttributeService::class)->merge(
+                (array) $data['attributes'],
+                app(ProductAttributeService::class)->activeFieldsForCurrentTenant(),
+                (array) $product->attributes,
+            );
+        }
         $oldImagePath = $product->getRawOriginal('image');
         $newImagePath = null;
 

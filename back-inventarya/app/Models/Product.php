@@ -26,6 +26,11 @@ class Product extends Model
         'sin_product_code',
         'sin_activity_code',
         'sin_unit_code',
+        'attributes',
+    ];
+
+    protected $casts = [
+        'attributes' => 'array',
     ];
 
     protected $appends = ['category_path'];
@@ -105,6 +110,18 @@ class Product extends Model
                 $product->slug = $slug;
             }
         });
+    }
+
+    /**
+     * Dynamic business-type values. An empty set is stored as a JSON object
+     * ({}) to match the column default, not as an empty JSON array.
+     */
+    public function setAttributesAttribute(?array $value): void
+    {
+        $this->attributes['attributes'] = json_encode(
+            empty($value) ? new \stdClass : $value,
+            JSON_UNESCAPED_UNICODE
+        );
     }
 
     public function getImageAttribute($value): ?string
